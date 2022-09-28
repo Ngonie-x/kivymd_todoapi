@@ -24,14 +24,20 @@ class Database:
             "SELECT * FROM tasks ORDER BY id DESC LIMIT 1").fetchone()
         return created_task
 
+    def get_task(self, task_id):
+        """Gets task with the specified ID
+        """
+        task = self.cursor.execute(
+            "SELECT * FROM tasks WHERE id=?", (task_id,)
+        )
+
+        return task.fetchone()
+
     def get_tasks(self):
         """Get tasks"""
-        uncomplete_tasks = self.cursor.execute(
-            "SELECT id, task, due_date FROM tasks WHERE completed = 0").fetchall()
-        completed_tasks = self.cursor.execute(
-            "SELECT id, task, due_date FROM tasks WHERE completed = 1").fetchall()
-
-        return completed_tasks, uncomplete_tasks
+        tasks = self.cursor.execute(
+            "SELECT * FROM tasks").fetchall()
+        return tasks
 
     def mark_task_as_complete(self, taskid):
         """Marking tasks as complete"""
@@ -49,6 +55,19 @@ class Database:
         task_text = self.cursor.execute(
             "SELECT task FROM tasks WHERE id=?", (taskid,)).fetchall()
         return task_text[0][0]
+
+    def update_task(self, taskid, task):
+        """Update the task text
+
+        Args:
+            taskid (int): id of the task to be updated
+            task (str): The new text for the update
+        """
+
+        self.cursor.execute(
+            "UPDATE tasks SET task=? WHERE id=?", (task, taskid)
+        )
+        self.con.commit()
 
     def delete_task(self, taskid):
         """Delete a task"""

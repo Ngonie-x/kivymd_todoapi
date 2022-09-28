@@ -1,3 +1,4 @@
+from asyncio import Task
 import json
 from typing import Union
 from datetime import date
@@ -20,14 +21,20 @@ class Todo(BaseModel):
 
 @app.get("/")
 async def root():
-    complete_tasks, incomplete_tasks = db.get_tasks()
+    tasks = db.get_tasks()
+    todos = []
 
-    context = {
-        'complete': json.dumps(complete_tasks),
-        'incomplete': json.dumps(incomplete_tasks)
-    }
+    for todo in tasks:
+        todos.append(
+            {
+                'id': todo[0],
+                'task': todo[1],
+                'due_date': todo[2],
+                'completed': todo[3]
+            }
+        )
 
-    return context
+    return todos
 
 
 @app.post("/create-task/")
@@ -42,3 +49,53 @@ async def create_task(todo: Todo):
     }
 
     return context
+
+
+@app.post("/task/{task_id}")
+async def get_task(task_id):
+    task = db.get_task(task_id)
+
+    todo = {
+        'id': task[0],
+        'task': task[1],
+        'due_date': task[2],
+        'completed': task[3]
+    }
+
+    return todo
+
+
+@app.put("/task/mark-complete/{task_id}")
+async def mark_complete(task_id):
+    db.mark_task_as_complete(task_id)
+
+    return {
+        "status": "Success"
+    }
+
+
+@app.put("/task/mark-incomplete/{task_id}")
+async def mark_incomplete(task_id):
+    db.mark_task_as_incomplete(task_id)
+
+    return {
+        "status": "Success"
+    }
+
+
+@app.put("/task/update/{task_id}")
+async def update_task(task_id: int, task: str):
+    db.update_task(task_id, task)
+
+    return {
+        "status": "Success"
+    }
+
+
+@app.delete('/delete-task/{task_id}')
+async def delete_task(task_id):
+    db.delete_task(task_id)
+
+    return {
+        "status": "Success"
+    }
